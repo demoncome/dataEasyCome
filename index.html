@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>内存配置性能对比分析工具</title>
+    <title>星超频 - 内存配置性能对比分析工具</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         * {
@@ -262,11 +262,107 @@
         .config-colors {
             display: none;
         }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            h1 {
+                font-size: 22px;
+                margin-bottom: 8px;
+            }
+            .subtitle {
+                font-size: 12px;
+                margin-bottom: 20px;
+                padding: 0 10px;
+            }
+            .control-panel {
+                padding: 16px;
+                border-radius: 12px;
+            }
+            .control-label {
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+            .checkbox-group {
+                gap: 8px;
+            }
+            .checkbox-item {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .res-toggle {
+                width: 100%;
+                gap: 6px;
+            }
+            .res-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+                flex: 1;
+            }
+            .chart-type-group {
+                gap: 8px;
+            }
+            .chart-type-btn {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+            .chart-wrapper {
+                padding: 16px;
+                border-radius: 12px;
+            }
+            .chart {
+                height: 400px;
+            }
+            .stats-panel {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin-top: 16px;
+            }
+            .stat-card {
+                padding: 16px;
+            }
+            .stat-value {
+                font-size: 24px;
+            }
+            th, td {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 18px;
+            }
+            .subtitle {
+                font-size: 11px;
+            }
+            .checkbox-item {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+            .chart {
+                height: 320px;
+            }
+            .chart-type-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            .res-btn {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+            .stat-value {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎮 内存配置性能对比分析工具</h1>
+        <h1>星超频 - 内存配置性能对比分析工具</h1>
         <p class="subtitle">Intel core Ultra 250 - ASUS B860 v5 - JBD 6000 24g - 5070 测试平台 | 自由选择配置对比分析</p>
         
         <!-- 控制面板 -->
@@ -478,38 +574,49 @@
                 });
             });
 
+            const mobile = isMobile();
+            const smallMobile = isSmallMobile();
+            
             return {
                 title: {
                     text: `📊 内存配置性能对比 - ${state.resolution === 'both' ? '1K vs 2K' : state.resolution}`,
                     left: 'center',
-                    textStyle: { fontSize: 20, color: '#e2e8f0' }
+                    textStyle: { fontSize: mobile ? (smallMobile ? 14 : 16) : 20, color: '#e2e8f0' }
                 },
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: { type: 'shadow' },
                     backgroundColor: 'rgba(15, 23, 42, 0.95)',
                     borderColor: '#334155',
-                    textStyle: { color: '#e2e8f0' }
+                    textStyle: { color: '#e2e8f0', fontSize: mobile ? 11 : 12 }
                 },
                 legend: {
                     data: series.map(s => s.name),
-                    top: 50,
+                    top: mobile ? (smallMobile ? 35 : 40) : 50,
                     type: 'scroll',
-                    textStyle: { color: '#94a3b8', fontSize: 11 },
+                    textStyle: { color: '#94a3b8', fontSize: mobile ? (smallMobile ? 9 : 10) : 11 },
                     pageIconColor: '#60a5fa',
-                    pageTextStyle: { color: '#94a3b8' }
+                    pageTextStyle: { color: '#94a3b8' },
+                    itemWidth: mobile ? 15 : 25,
+                    itemHeight: mobile ? 10 : 14
                 },
                 grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '10%',
-                    top: 120,
+                    left: mobile ? '2%' : '3%',
+                    right: mobile ? '2%' : '4%',
+                    bottom: mobile ? (smallMobile ? '15%' : '12%') : '10%',
+                    top: mobile ? (smallMobile ? 70 : 85) : 120,
                     containLabel: true
                 },
                 xAxis: {
                     type: 'category',
                     data: testData.games,
-                    axisLabel: { fontSize: 13, color: '#94a3b8', fontWeight: 'bold' },
+                    axisLabel: { 
+                        fontSize: mobile ? (smallMobile ? 10 : 11) : 13, 
+                        color: '#94a3b8', 
+                        fontWeight: 'bold',
+                        rotate: mobile ? 30 : 0,
+                        interval: 0
+                    },
                     axisLine: { lineStyle: { color: '#334155' } }
                 },
                 yAxis: {
@@ -558,13 +665,16 @@
                 });
             });
 
+            const mobile = isMobile();
+            const smallMobile = isSmallMobile();
+            
             return {
                 ...createGroupedOption(),
                 series: series,
                 title: {
                     text: `📈 平均帧率对比 - ${state.resolution === 'both' ? '1K vs 2K' : state.resolution}`,
                     left: 'center',
-                    textStyle: { fontSize: 20, color: '#e2e8f0' }
+                    textStyle: { fontSize: mobile ? (smallMobile ? 14 : 16) : 20, color: '#e2e8f0' }
                 }
             };
         }
@@ -601,13 +711,16 @@
                 });
             });
 
+            const mobile = isMobile();
+            const smallMobile = isSmallMobile();
+            
             return {
                 ...createGroupedOption(),
                 series: series,
                 title: {
                     text: `📉 1%Low帧率对比（稳定性）- ${state.resolution === 'both' ? '1K vs 2K' : state.resolution}`,
                     left: 'center',
-                    textStyle: { fontSize: 20, color: '#e2e8f0' }
+                    textStyle: { fontSize: mobile ? (smallMobile ? 14 : 16) : 20, color: '#e2e8f0' }
                 }
             };
         }
@@ -619,6 +732,8 @@
             const series = [];
             const isBoth = state.resolution === 'both';
             const resolutions = isBoth ? ['1K', '2K'] : [state.resolution];
+            const mobile = isMobile();
+            const smallMobile = isSmallMobile();
             
             selected.forEach(config => {
                 resolutions.forEach(res => {
@@ -632,8 +747,8 @@
                             areaStyle: { opacity: 0.2 }
                         }],
                         symbol: 'circle',
-                        symbolSize: 8,
-                        lineStyle: { width: 2 }
+                        symbolSize: mobile ? (smallMobile ? 4 : 5) : 8,
+                        lineStyle: { width: mobile ? 1.5 : 2 }
                     });
                 });
             });
@@ -642,24 +757,29 @@
                 title: {
                     text: `🎯 综合性能雷达图 - ${state.resolution === 'both' ? '1K vs 2K' : state.resolution}`,
                     left: 'center',
-                    textStyle: { fontSize: 20, color: '#e2e8f0' }
+                    textStyle: { fontSize: mobile ? (smallMobile ? 14 : 16) : 20, color: '#e2e8f0' }
                 },
                 tooltip: {
                     trigger: 'item',
                     backgroundColor: 'rgba(15, 23, 42, 0.95)',
                     borderColor: '#334155',
-                    textStyle: { color: '#e2e8f0' }
+                    textStyle: { color: '#e2e8f0', fontSize: mobile ? 11 : 12 }
                 },
                 legend: {
                     data: series.map(s => s.name),
-                    bottom: 10,
-                    textStyle: { color: '#94a3b8' }
+                    bottom: smallMobile ? 5 : 10,
+                    textStyle: { color: '#94a3b8', fontSize: mobile ? (smallMobile ? 9 : 10) : 12 },
+                    itemWidth: mobile ? 15 : 25,
+                    itemHeight: mobile ? 10 : 14
                 },
                 radar: {
                     indicator: indicator,
-                    center: ['50%', '50%'],
-                    radius: '65%',
-                    axisName: { color: '#94a3b8' },
+                    center: ['50%', smallMobile ? '45%' : '50%'],
+                    radius: mobile ? (smallMobile ? '50%' : '55%') : '65%',
+                    axisName: { 
+                        color: '#94a3b8',
+                        fontSize: mobile ? (smallMobile ? 9 : 10) : 12
+                    },
                     splitArea: {
                         areaStyle: {
                             color: ['rgba(96, 165, 250, 0.05)', 'rgba(96, 165, 250, 0.1)']
@@ -678,6 +798,8 @@
             const series = [];
             const isBoth = state.resolution === 'both';
             const resolutions = isBoth ? ['1K', '2K'] : [state.resolution];
+            const mobile = isMobile();
+            const smallMobile = isSmallMobile();
             
             selected.forEach(config => {
                 resolutions.forEach(res => {
@@ -690,8 +812,8 @@
                         data: config.data[res].avg,
                         smooth: true,
                         symbol: 'circle',
-                        symbolSize: 10,
-                        lineStyle: { width: 3, color: adjustBrightness(config.color, brightness) },
+                        symbolSize: mobile ? (smallMobile ? 5 : 6) : 10,
+                        lineStyle: { width: mobile ? 2 : 3, color: adjustBrightness(config.color, brightness) },
                         itemStyle: { color: adjustBrightness(config.color, brightness) },
                         areaStyle: {
                             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -707,8 +829,8 @@
                         data: config.data[res].low,
                         smooth: true,
                         symbol: 'diamond',
-                        symbolSize: 8,
-                        lineStyle: { width: 2, type: 'dashed', color: adjustBrightness(config.color, brightness * 0.6) },
+                        symbolSize: mobile ? (smallMobile ? 4 : 5) : 8,
+                        lineStyle: { width: mobile ? 1.5 : 2, type: 'dashed', color: adjustBrightness(config.color, brightness * 0.6) },
                         itemStyle: { color: adjustBrightness(config.color, brightness * 0.6) }
                     });
                 });
@@ -718,31 +840,38 @@
                 title: {
                     text: `📈 性能趋势折线图 - ${state.resolution === 'both' ? '1K vs 2K' : state.resolution}`,
                     left: 'center',
-                    textStyle: { fontSize: 20, color: '#e2e8f0' }
+                    textStyle: { fontSize: mobile ? (smallMobile ? 14 : 16) : 20, color: '#e2e8f0' }
                 },
                 tooltip: {
                     trigger: 'axis',
                     backgroundColor: 'rgba(15, 23, 42, 0.95)',
                     borderColor: '#334155',
-                    textStyle: { color: '#e2e8f0' }
+                    textStyle: { color: '#e2e8f0', fontSize: mobile ? 11 : 12 }
                 },
                 legend: {
                     data: series.map(s => s.name),
-                    top: 50,
+                    top: mobile ? (smallMobile ? 35 : 40) : 50,
                     type: 'scroll',
-                    textStyle: { color: '#94a3b8', fontSize: 11 }
+                    textStyle: { color: '#94a3b8', fontSize: mobile ? (smallMobile ? 9 : 10) : 11 },
+                    itemWidth: mobile ? 15 : 25,
+                    itemHeight: mobile ? 10 : 14
                 },
                 grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    top: 120,
+                    left: mobile ? '2%' : '3%',
+                    right: mobile ? '2%' : '4%',
+                    bottom: mobile ? (smallMobile ? '8%' : '5%') : '3%',
+                    top: mobile ? (smallMobile ? 70 : 85) : 120,
                     containLabel: true
                 },
                 xAxis: {
                     type: 'category',
                     data: testData.games,
-                    axisLabel: { fontSize: 13, color: '#94a3b8' },
+                    axisLabel: { 
+                        fontSize: mobile ? (smallMobile ? 10 : 11) : 13, 
+                        color: '#94a3b8',
+                        rotate: mobile ? 30 : 0,
+                        interval: 0
+                    },
                     axisLine: { lineStyle: { color: '#334155' } }
                 },
                 yAxis: {
@@ -874,13 +1003,26 @@
             updateTable();
         }
 
+        // 检测是否为移动端
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+        
+        function isSmallMobile() {
+            return window.innerWidth <= 480;
+        }
+
         // 初始化
         function init() {
             myChart = echarts.init(document.getElementById('mainChart'));
             initConfigSelector();
             updateChart();
             
-            window.addEventListener('resize', () => myChart.resize());
+            window.addEventListener('resize', () => {
+                myChart.resize();
+                // 重新渲染图表以应用移动端适配
+                updateChart();
+            });
         }
 
         // 启动
