@@ -75,31 +75,92 @@ const comparisonData = computed<ComparisonRow[]>(() => {
   })
 })
 
+// 计算每个游戏的1K和2K Low帧提升百分比
+const lowPercentData = computed(() => {
+  if (!store.memoryData || store.selectedData.length < 2) return {}
+
+  const result: Record<string, { percent1k: string; percent2k: string }> = {}
+
+  store.games.forEach((game, gameIndex) => {
+    const values1k: ConfigValue[] = store.selectedData.map(config => ({
+      name: config.name,
+      value: config.data['1K'].low[gameIndex] ?? 0
+    }))
+    const values2k: ConfigValue[] = store.selectedData.map(config => ({
+      name: config.name,
+      value: config.data['2K'].low[gameIndex] ?? 0
+    }))
+
+    values1k.sort((a, b) => b.value - a.value)
+    values2k.sort((a, b) => b.value - a.value)
+
+    const best1k = values1k[0]?.value ?? 0
+    const worst1k = values1k[values1k.length - 1]?.value ?? 0
+    const best2k = values2k[0]?.value ?? 0
+    const worst2k = values2k[values2k.length - 1]?.value ?? 0
+
+    result[game] = {
+      percent1k: calcPercentDiff(best1k, worst1k),
+      percent2k: calcPercentDiff(best2k, worst2k)
+    }
+  })
+
+  return result
+})
+
 const tableData = computed(() => {
   if (!store.memoryData) return { headers: [], rows: [] }
 
   const isBoth = store.resolution === 'both'
   const resolutions = isBoth ? ['1K', '2K'] : [store.resolution]
 
+  // 构建表头：游戏 | 配置1 1K | 配置2 1K | ... | 1K提升 | 配置1 2K | 配置2 2K | ... | 2K提升
   const headers = ['游戏']
-  store.selectedData.forEach(config => {
-    resolutions.forEach(res => {
-      headers.push(`${config.name} ${res}`)
+
+  // 1K 数据列
+  if (resolutions.includes('1K')) {
+    store.selectedData.forEach(config => {
+      headers.push(`${config.name} 1K`)
     })
-  })
+    headers.push('1K Low提升')
+  }
+
+  // 2K 数据列
+  if (resolutions.includes('2K')) {
+    store.selectedData.forEach(config => {
+      headers.push(`${config.name} 2K`)
+    })
+    headers.push('2K Low提升')
+  }
 
   const rows: TableRow[] = store.games.map((game, gameIndex) => {
     const row: TableRow = { game }
 
-    store.selectedData.forEach(config => {
-      resolutions.forEach(res => {
-        const data = config.data[res as '1K' | '2K']
-        const key = `${config.name} ${res}`
+    // 1K 数据
+    if (resolutions.includes('1K')) {
+      store.selectedData.forEach(config => {
+        const data = config.data['1K']
+        const key = `${config.name} 1K`
         const avg = data?.avg[gameIndex] ?? 0
         const low = data?.low[gameIndex] ?? 0
         row[key] = `${avg.toFixed(1)} / ${low.toFixed(1)}`
       })
-    })
+      const percentData = lowPercentData.value[game]
+      row['1K Low提升'] = percentData?.percent1k ?? '-'
+    }
+
+    // 2K 数据
+    if (resolutions.includes('2K')) {
+      store.selectedData.forEach(config => {
+        const data = config.data['2K']
+        const key = `${config.name} 2K`
+        const avg = data?.avg[gameIndex] ?? 0
+        const low = data?.low[gameIndex] ?? 0
+        row[key] = `${avg.toFixed(1)} / ${low.toFixed(1)}`
+      })
+      const percentData = lowPercentData.value[game]
+      row['2K Low提升'] = percentData?.percent2k ?? '-'
+    }
 
     return row
   })
@@ -123,10 +184,16 @@ const tableData = computed(() => {
         <tbody>
           <tr v-for="row in tableData.rows" :key="row.game">
             <td class="game-name">{{ row.game }}</td>
-            <td v-for="header in tableData.headers.slice(1)" :key="header" class="data-cell">
-              <span class="avg-value">{{ (row[header] as string).split(' / ')[0] }}</span>
-              <span class="separator"> / </span>
-              <span class="low-value">{{ (row[header] as string).split(' / ')[1] }}</span>
+            <td v-for="header in tableData.headers.slice(1)" :key="header"
+                :class="header.includes('提升') ? 'percent-cell' : 'data-cell'">
+              <template v-if="header.includes('提升')">
+                {{ row[header] }}
+              </template>
+              <template v-else>
+                <span class="avg-value">{{ (row[header] as string).split(' / ')[0] }}</span>
+                <span class="separator"> / </span>
+                <span class="low-value">{{ (row[header] as string).split(' / ')[1] }}</span>
+              </template>
             </td>
           </tr>
         </tbody>
@@ -140,11 +207,11 @@ const tableData = computed(() => {
           <tr>
             <th>游戏</th>
             <th>最佳配置</th>
-            <th>帧数</th>
+            <th>最佳帧数</th>
             <th>最差配置</th>
-            <th>帧数</th>
+            <th>最差帧数</th>
             <th>差值</th>
-            <th>提升</th>
+            <th>提升百分比</th>
           </tr>
         </thead>
         <tbody>
@@ -168,11 +235,11 @@ const tableData = computed(() => {
           <tr>
             <th>游戏</th>
             <th>最佳配置</th>
-            <th>帧数</th>
+            <th>最佳帧数</th>
             <th>最差配置</th>
-            <th>帧数</th>
+            <th>最差帧数</th>
             <th>差值</th>
-            <th>提升</th>
+            <th>提升百分比</th>
           </tr>
         </thead>
         <tbody>
@@ -282,6 +349,13 @@ tr:hover {
 .low-value {
   color: #fbbf24;
   font-weight: 600;
+}
+
+.percent-cell {
+  color: #a78bfa;
+  font-weight: 700;
+  font-size: 13px;
+  background: rgba(167, 139, 250, 0.1);
 }
 
 .best-config {
