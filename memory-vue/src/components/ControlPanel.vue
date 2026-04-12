@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useMemoryStore } from '@/stores/memory'
 import type { Resolution, ChartType } from '@/types'
 
 const store = useMemoryStore()
+const router = useRouter()
 
 const chartTypes: { type: ChartType; label: string }[] = [
   { type: 'grouped', label: '分组柱状图' },
@@ -28,6 +30,10 @@ function setResolution(res: Resolution) {
 
 function setChartType(type: ChartType) {
   store.setChartType(type)
+}
+
+function goToDataEntry() {
+  router.push('/data-entry')
 }
 </script>
 
@@ -88,6 +94,14 @@ function setChartType(type: ChartType) {
         </button>
       </div>
     </div>
+
+    <!-- 数据管理 -->
+    <!-- <div class="control-section">
+      <div class="control-label">📝 数据管理：</div>
+      <button class="data-entry-btn" @click="goToDataEntry">
+        ✏️ 编辑/录入数据
+      </button>
+    </div> -->
   </div>
 </template>
 
@@ -218,6 +232,26 @@ function setChartType(type: ChartType) {
   background: linear-gradient(135deg, #60a5fa, #a78bfa);
   border-color: transparent;
   color: white;
+}
+
+.data-entry-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #34d399, #22d3ee);
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-entry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(52, 211, 153, 0.3);
 }
 
 @media (max-width: 768px) {
