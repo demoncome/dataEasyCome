@@ -4,10 +4,9 @@ import { useMemoryStore } from '@/stores/memory'
 
 const store = useMemoryStore()
 
-interface LowData {
-  game: string
-  values: number[]
-  configs: string[]
+interface ConfigValue {
+  name: string
+  value: number
 }
 
 interface ComparisonRow {
@@ -26,6 +25,11 @@ interface ComparisonRow {
   diff2kPercent: string
 }
 
+interface TableRow {
+  game: string
+  [key: string]: string | number
+}
+
 // 计算百分比变化
 function calcPercentDiff(best: number, worst: number): string {
   if (worst === 0) return '0%'
@@ -33,84 +37,16 @@ function calcPercentDiff(best: number, worst: number): string {
   return `+${diff.toFixed(1)}%`
 }
 
-// 1K Low帧对比数据
-const low1kData = computed<ComparisonRow[]>(() => {
-  if (!store.memoryData || store.selectedData.length < 2) return []
-
-  return store.games.map((game, gameIndex) => {
-    const values = store.selectedData.map(config => ({
-      name: config.name,
-      value: config.data['1K'].low[gameIndex]
-    }))
-
-    // 按值排序
-    values.sort((a, b) => b.value - a.value)
-
-    const best = values[0]
-    const worst = values[values.length - 1]
-
-    return {
-      game,
-      best1k: best.name,
-      best1kValue: best.value,
-      worst1k: worst.name,
-      worst1kValue: worst.value,
-      diff1k: `${(best.value - worst.value).toFixed(1)}`,
-      diff1kPercent: calcPercentDiff(best.value, worst.value),
-      best2k: '',
-      worst2k: '',
-      best2kValue: 0,
-      worst2kValue: 0,
-      diff2k: '',
-      diff2kPercent: ''
-    }
-  })
-})
-
-// 2K Low帧对比数据
-const low2kData = computed<ComparisonRow[]>(() => {
-  if (!store.memoryData || store.selectedData.length < 2) return []
-
-  return store.games.map((game, gameIndex) => {
-    const values = store.selectedData.map(config => ({
-      name: config.name,
-      value: config.data['2K'].low[gameIndex]
-    }))
-
-    // 按值排序
-    values.sort((a, b) => b.value - a.value)
-
-    const best = values[0]
-    const worst = values[values.length - 1]
-
-    return {
-      game,
-      best1k: '',
-      best1kValue: 0,
-      worst1k: '',
-      worst1kValue: 0,
-      diff1k: '',
-      diff1kPercent: '',
-      best2k: best.name,
-      best2kValue: best.value,
-      worst2k: worst.name,
-      worst2kValue: worst.value,
-      diff2k: `${(best.value - worst.value).toFixed(1)}`,
-      diff2kPercent: calcPercentDiff(best.value, worst.value)
-    }
-  })
-})
-
 // 合并数据
 const comparisonData = computed<ComparisonRow[]>(() => {
   if (!store.memoryData || store.selectedData.length < 2) return []
 
   return store.games.map((game, gameIndex) => {
-    const values1k = store.selectedData.map(config => ({
+    const values1k: ConfigValue[] = store.selectedData.map(config => ({
       name: config.name,
       value: config.data['1K'].low[gameIndex]
     }))
-    const values2k = store.selectedData.map(config => ({
+    const values2k: ConfigValue[] = store.selectedData.map(config => ({
       name: config.name,
       value: config.data['2K'].low[gameIndex]
     }))
@@ -118,10 +54,10 @@ const comparisonData = computed<ComparisonRow[]>(() => {
     values1k.sort((a, b) => b.value - a.value)
     values2k.sort((a, b) => b.value - a.value)
 
-    const best1k = values1k[0]
-    const worst1k = values1k[values1k.length - 1]
-    const best2k = values2k[0]
-    const worst2k = values2k[values2k.length - 1]
+    const best1k = values1k[0] || { name: '-', value: 0 }
+    const worst1k = values1k[values1k.length - 1] || { name: '-', value: 0 }
+    const best2k = values2k[0] || { name: '-', value: 0 }
+    const worst2k = values2k[values2k.length - 1] || { name: '-', value: 0 }
 
     return {
       game,
@@ -140,11 +76,6 @@ const comparisonData = computed<ComparisonRow[]>(() => {
     }
   })
 })
-
-interface TableRow {
-  game: string
-  [key: string]: string | number
-}
 
 const tableData = computed(() => {
   if (!store.memoryData) return { headers: [], rows: [] }
@@ -166,7 +97,9 @@ const tableData = computed(() => {
       resolutions.forEach(res => {
         const data = config.data[res as '1K' | '2K']
         const key = `${config.name} ${res}`
-        row[key] = `${data.avg[gameIndex].toFixed(1)} / ${data.low[gameIndex].toFixed(1)}`
+        const avg = data?.avg[gameIndex] ?? 0
+        const low = data?.low[gameIndex] ?? 0
+        row[key] = `${avg.toFixed(1)} / ${low.toFixed(1)}`
       })
     })
 
