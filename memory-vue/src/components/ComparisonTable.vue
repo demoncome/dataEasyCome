@@ -30,25 +30,23 @@ interface TableRow {
   [key: string]: string | number
 }
 
-// 计算百分比变化
 function calcPercentDiff(best: number, worst: number): string {
   if (worst === 0) return '0%'
   const diff = ((best - worst) / worst) * 100
   return `+${diff.toFixed(1)}%`
 }
 
-// 合并数据
 const comparisonData = computed<ComparisonRow[]>(() => {
   if (!store.memoryData || store.selectedData.length < 2) return []
 
   return store.games.map((game, gameIndex) => {
     const values1k: ConfigValue[] = store.selectedData.map(config => ({
       name: config.name,
-      value: config.data['1K'].low[gameIndex]
+      value: config.data['1K'].low[gameIndex] ?? 0
     }))
     const values2k: ConfigValue[] = store.selectedData.map(config => ({
       name: config.name,
-      value: config.data['2K'].low[gameIndex]
+      value: config.data['2K'].low[gameIndex] ?? 0
     }))
 
     values1k.sort((a, b) => b.value - a.value)
@@ -117,25 +115,15 @@ const tableData = computed(() => {
       <table>
         <thead>
           <tr>
-            <th
-              v-for="header in tableData.headers"
-              :key="header"
-            >
+            <th v-for="header in tableData.headers" :key="header">
               {{ header }}
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="row in tableData.rows"
-            :key="row.game"
-          >
+          <tr v-for="row in tableData.rows" :key="row.game">
             <td class="game-name">{{ row.game }}</td>
-            <td
-              v-for="header in tableData.headers.slice(1)"
-              :key="header"
-              class="data-cell"
-            >
+            <td v-for="header in tableData.headers.slice(1)" :key="header" class="data-cell">
               <span class="avg-value">{{ (row[header] as string).split(' / ')[0] }}</span>
               <span class="separator"> / </span>
               <span class="low-value">{{ (row[header] as string).split(' / ')[1] }}</span>
@@ -145,7 +133,6 @@ const tableData = computed(() => {
       </table>
     </div>
 
-    <!-- 1K Low帧对比 -->
     <h3 class="table-title" style="margin-top: 30px;">🎯 1K Low帧对比（最佳 vs 最差）</h3>
     <div class="comparison-table">
       <table class="compact-table">
@@ -174,7 +161,6 @@ const tableData = computed(() => {
       </table>
     </div>
 
-    <!-- 2K Low帧对比 -->
     <h3 class="table-title" style="margin-top: 30px;">🎯 2K Low帧对比（最佳 vs 最差）</h3>
     <div class="comparison-table">
       <table class="compact-table">
