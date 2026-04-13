@@ -5,7 +5,7 @@ import type { MemoryData, ConfigData, Resolution, ChartType } from "@/types";
 export const useMemoryStore = defineStore("memory", () => {
   // State
   const memoryData = ref<MemoryData | null>(null);
-  const selectedConfigs = ref<string[]>(["16Gx1_xcp8200", "16Gx2_xmp6000"]);
+  const selectedConfigs = ref<string[]>(["24Gx1_xcp8200", "24Gx2_xmp6000"]);
   const resolution = ref<Resolution>("both");
   const chartType = ref<ChartType>("grouped");
   const loading = ref(false);
