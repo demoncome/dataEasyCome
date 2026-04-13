@@ -3,5 +3,11 @@
   "buildCommand": "cd memory-vue && npm run build",
   "outputDirectory": "memory-vue/dist",
   "framework": "vite",
-  "installCommand": "cd memory-vue && npm install"
+  "installCommand": "cd memory-vue && npm install",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
