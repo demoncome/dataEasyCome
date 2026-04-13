@@ -23,10 +23,11 @@ const presetColors = [
 // 初始化配置
 function initConfig(): ConfigData {
   const gameCount = games.value.filter(g => g.trim()).length || 1
+  const colorIndex = configs.length % presetColors.length
   return {
     id: '',
     name: '',
-    color: presetColors[configs.length % presetColors.length],
+    color: presetColors[colorIndex] ?? '#60a5fa',
     data: {
       '1K': { avg: new Array(gameCount).fill(0), low: new Array(gameCount).fill(0) },
       '2K': { avg: new Array(gameCount).fill(0), low: new Array(gameCount).fill(0) }
