@@ -70,7 +70,7 @@ function createGroupedOption(): EChartsOption {
           color: store.adjustBrightness(config.color, brightness),
           borderRadius: [4, 4, 0, 0]
         },
-        barWidth: isBoth ? '15%' : '24%',
+        barWidth: isBoth ? '10%' : '15%',
         label: {
           show: true,
           position: store.isMobile ? 'insideTop' : 'top',
@@ -89,7 +89,7 @@ function createGroupedOption(): EChartsOption {
           color: store.adjustBrightness(config.color, brightness * 0.6),
           borderRadius: [4, 4, 0, 0]
         },
-        barWidth: isBoth ? '15%' : '24%',
+        barWidth: isBoth ? '10%' : '15%',
         label: {
           show: true,
           position: store.isMobile ? 'insideTop' : 'top',
@@ -190,7 +190,7 @@ function createAvgOnlyOption(): EChartsOption {
           },
           borderRadius: [6, 6, 0, 0]
         },
-        barWidth: isBoth ? '16%' : '24%',
+        barWidth: isBoth ? '12%' : '18%',
         label: {
           show: true,
           position: 'top',
@@ -287,7 +287,7 @@ function createLowOnlyOption(): EChartsOption {
           },
           borderRadius: [6, 6, 0, 0]
         },
-        barWidth: isBoth ? '18%' : '28%',
+        barWidth: isBoth ? '12%' : '18%',
         label: {
           show: true,
           position: 'top',

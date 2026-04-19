@@ -171,19 +171,7 @@ const tableData = computed(() => {
 
 <template>
   <div class="chart-wrapper" style="margin-top: 24px;">
-    <div class="table-header">
-      <h3 class="table-title">📋 详细数据对比表</h3>
-      <div class="legend">
-        <span class="legend-item">
-          <span class="legend-color avg"></span>
-          平均帧
-        </span>
-        <span class="legend-item">
-          <span class="legend-color low"></span>
-          1%Low帧
-        </span>
-      </div>
-    </div>
+    <h3 class="table-title">📋 详细数据对比表</h3>
     <div class="comparison-table">
       <table>
         <thead>
@@ -268,19 +256,22 @@ const tableData = computed(() => {
       </table>
     </div>
 
+    <div class="legend">
+      <span class="legend-item">
+        <span class="legend-color avg"></span>
+        平均帧
+      </span>
+      <span class="legend-item">
+        <span class="legend-color low"></span>
+        1%Low帧
+      </span>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
 .table-title {
-  margin: 0;
+  margin-bottom: 20px;
   color: #60a5fa;
   font-size: 18px;
 }
