@@ -5,7 +5,8 @@ import type { MemoryData, ConfigData, Resolution, ChartType } from "@/types";
 export const useMemoryStore = defineStore("memory", () => {
   // State
   const memoryData = ref<MemoryData | null>(null);
-  const selectedConfigs = ref<string[]>(["24Gx1_xcp8200", "24Gx2_xmp6000"]);
+  // const selectedConfigs = ref<string[]>(["24Gx1_xcp8200", "24Gx2_xmp6000"]);
+  const selectedConfigs = ref<string[]>(["XMP_6000_24Gx2"]);
   const resolution = ref<Resolution>("both");
   const chartType = ref<ChartType>("grouped");
   const loading = ref(false);
@@ -28,7 +29,8 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value = true;
     error.value = null;
     try {
-      const response = await fetch("/mock/memoryData.json");
+      // 调取数据的地方
+      const response = await fetch("/mock/xmp_6000_16x2.json");
       if (!response.ok) throw new Error("Failed to fetch data");
       memoryData.value = await response.json();
     } catch (e) {
