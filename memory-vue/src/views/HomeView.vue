@@ -2,12 +2,14 @@
 import { onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMemoryStore } from '@/stores/memory'
+import { useAuthStore } from '@/stores/auth'
 import ControlPanel from '@/components/ControlPanel.vue'
 import MemoryChart from '@/components/MemoryChart.vue'
 import StatsPanel from '@/components/StatsPanel.vue'
 import ComparisonTable from '@/components/ComparisonTable.vue'
 
 const store = useMemoryStore()
+const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -31,6 +33,13 @@ const goBack = () => {
 }
 
 const goToDataEntry = () => {
+  if (!authStore.isAuthenticated) {
+    router.push({
+      path: '/login',
+      query: { redirect: `/data-entry?edit=true&planId=${planId.value}` }
+    })
+    return
+  }
   router.push({
     path: '/data-entry',
     query: { edit: 'true', planId: planId.value }

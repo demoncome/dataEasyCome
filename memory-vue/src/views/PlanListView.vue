@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import type { PlansData, Plan } from '@/types'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const plans = ref<Plan[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -30,7 +32,20 @@ const goToPlanDetail = (planId: string) => {
 }
 
 const goToDataEntry = () => {
+  if (!authStore.isAuthenticated) {
+    router.push({ path: '/login', query: { redirect: '/data-entry' } })
+    return
+  }
   router.push('/data-entry')
+}
+
+const goToEditPlan = (planId: string, event: Event) => {
+  event.stopPropagation()
+  if (!authStore.isAuthenticated) {
+    router.push({ path: '/login', query: { redirect: `/data-entry/${planId}` } })
+    return
+  }
+  router.push(`/data-entry/${planId}`)
 }
 
 const formatDate = (dateStr: string) => {
@@ -132,6 +147,7 @@ onMounted(() => {
         </div>
 
         <div class="plan-actions">
+          <button class="edit-btn" @click="goToEditPlan(plan.id, $event)">编辑</button>
           <span class="view-btn">查看详情 →</span>
         </div>
       </div>
@@ -410,7 +426,27 @@ onMounted(() => {
 
 .plan-actions {
   display: flex;
+  align-items: center;
+  gap: 12px;
   flex-shrink: 0;
+}
+
+.edit-btn {
+  padding: 6px 12px;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  color: #60a5fa;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.edit-btn:hover {
+  background: rgba(96, 165, 250, 0.2);
+  border-color: rgba(96, 165, 250, 0.5);
 }
 
 .view-btn {
