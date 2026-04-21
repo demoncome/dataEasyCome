@@ -99,7 +99,7 @@ const goToDataEntry = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding: 0 4%;
+  /* padding: 0 4%; */
 }
 
 .back-btn {
