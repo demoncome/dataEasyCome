@@ -57,6 +57,16 @@ onMounted(() => {
 
 <template>
   <div class="plan-list-container">
+    <div class="logo">
+      <div class="logo-icon">
+        <img src="/src/assets/xcp-logo.svg" alt="logo" />
+      </div>
+      <div class="logo-text">
+        <span class="logo-brand">星超频</span>
+        <span class="logo-divider">|</span>
+        <span class="logo-title">IPO 内存测试对比工具</span>
+      </div>
+    </div>
     <div class="header">
       <h1 class="title">📊 内存配置性能对比方案</h1>
       <button class="create-btn" @click="goToDataEntry">
@@ -126,6 +136,10 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <footer class="footer">
+      <p>版权及数据最终解释权归星超频所有</p>
+    </footer>
   </div>
 </template>
 
@@ -135,6 +149,8 @@ onMounted(() => {
   margin: 0 auto;
   padding: 24px;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
@@ -176,6 +192,55 @@ onMounted(() => {
 .icon {
   font-size: 20px;
   font-weight: 400;
+}
+
+/* Logo 样式 */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 16px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  color: #60a5fa;
+}
+
+.logo-icon img {
+  width: 100%;
+  height: 100%;
+}
+
+.logo-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-brand {
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #4285f4 0%, #ea4335 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+.logo-divider {
+  color: #475569;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.logo-title {
+  font-size: 16px;
+  color: #94a3b8;
+  font-weight: 500;
 }
 
 .loading {
@@ -243,6 +308,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1;
 }
 
 .plan-card {
@@ -364,6 +430,28 @@ onMounted(() => {
     padding: 16px;
   }
 
+  .logo {
+    margin-bottom: 24px;
+    padding: 12px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .logo-brand {
+    font-size: 20px;
+  }
+
+  .logo-divider {
+    font-size: 14px;
+  }
+
+  .logo-title {
+    font-size: 13px;
+  }
+
   .header {
     flex-direction: column;
     gap: 16px;
@@ -416,6 +504,31 @@ onMounted(() => {
   .plan-actions {
     order: 5;
     margin-left: auto;
+  }
+}
+
+/* Footer 样式 */
+.footer {
+  margin-top: auto;
+  padding: 24px;
+  text-align: center;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.footer p {
+  color: #64748b;
+  font-size: 13px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    margin-top: 32px;
+    padding: 16px;
+  }
+
+  .footer p {
+    font-size: 12px;
   }
 }
 </style>
