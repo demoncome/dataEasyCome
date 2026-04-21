@@ -53,15 +53,7 @@ const goBack = () => {
 
       <div class="logo">
         <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="url(#login-gradient)" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <defs>
-              <linearGradient id="login-gradient" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#60a5fa"/>
-                <stop offset="1" stop-color="#a78bfa"/>
-              </linearGradient>
-            </defs>
-          </svg>
+          <img src="/src/assets/xcp-logo.svg" alt="logo" />
         </div>
         <h1>星超频</h1>
       </div>
@@ -156,12 +148,12 @@ const goBack = () => {
 }
 
 .logo-icon {
-  width: 56px;
-  height: 56px;
+  width: 86px;
+  height: 86px;
   color: #60a5fa;
 }
 
-.logo-icon svg {
+.logo-icon img {
   width: 100%;
   height: 100%;
 }
