@@ -1,11 +1,19 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useMemoryStore } from '@/stores/memory'
-import type { ConfigData, MemoryData } from '@/types'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import type { ConfigData, MemoryData, Plan, PlansData } from '@/types'
 
 const router = useRouter()
-const store = useMemoryStore()
+const route = useRoute()
+
+// 判断是编辑模式还是新建模式
+const isEditMode = computed(() => route.query.edit === 'true')
+const editPlanId = computed(() => route.query.planId as string | undefined)
+
+// 方案基本信息
+const planName = ref('')
+const planDescription = ref('')
+const planId = ref('')
 
 // 表单数据
 const games = ref<string[]>([''])
@@ -19,6 +27,11 @@ const presetColors = [
   '#60a5fa', '#34d399', '#f472b6', '#fbbf24', '#a78bfa',
   '#f87171', '#22d3ee', '#a3e635', '#fb923c', '#e879f9'
 ]
+
+// 生成唯一ID
+function generateId(): string {
+  return 'plan_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
+}
 
 // 初始化配置
 function initConfig(): ConfigData {
@@ -83,11 +96,61 @@ function showMessage(msg: string, type: 'success' | 'error') {
   setTimeout(() => message.value = '', 3000)
 }
 
+// 获取现有方案数据
+async function fetchExistingPlans(): Promise<PlansData> {
+  try {
+    const response = await fetch('/mock/plansData.json')
+    if (!response.ok) {
+      return { plans: [] }
+    }
+    return await response.json()
+  } catch {
+    return { plans: [] }
+  }
+}
+
+// 加载要编辑的方案
+async function loadPlanForEdit() {
+  if (!isEditMode.value || !editPlanId.value) return
+  
+  const plansData = await fetchExistingPlans()
+  const plan = plansData.plans.find(p => p.id === editPlanId.value)
+  
+  if (plan) {
+    planId.value = plan.id
+    planName.value = plan.name
+    planDescription.value = plan.description
+    games.value = [...plan.data.games]
+    configs.length = 0
+    plan.data.configs.forEach(config => {
+      configs.push({
+        id: config.id,
+        name: config.name,
+        color: config.color,
+        data: {
+          '1K': { avg: [...config.data['1K'].avg], low: [...config.data['1K'].low] },
+          '2K': { avg: [...config.data['2K'].avg], low: [...config.data['2K'].low] }
+        }
+      })
+    })
+  }
+}
+
 // 保存数据
 async function saveData() {
+  if (!planName.value.trim()) {
+    showMessage('请输入方案名称', 'error')
+    return
+  }
+
   const validGames = games.value.filter(g => g.trim())
   if (validGames.length === 0) {
     showMessage('请至少输入一个游戏名称', 'error')
+    return
+  }
+
+  if (configs.length === 0) {
+    showMessage('请至少添加一个配置', 'error')
     return
   }
 
@@ -99,82 +162,119 @@ async function saveData() {
     config.id = generateConfigId(config.name)
   }
 
-  const data: MemoryData = {
-    games: validGames,
-    configs: configs.map(config => ({
-      ...config,
-      data: {
-        '1K': {
-          avg: config.data['1K'].avg.slice(0, validGames.length),
-          low: config.data['1K'].low.slice(0, validGames.length)
-        },
-        '2K': {
-          avg: config.data['2K'].avg.slice(0, validGames.length),
-          low: config.data['2K'].low.slice(0, validGames.length)
+  const now = new Date().toISOString()
+  
+  // 如果是新建模式，生成新ID
+  if (!isEditMode.value) {
+    planId.value = generateId()
+  }
+
+  const planData: Plan = {
+    id: planId.value,
+    name: planName.value.trim(),
+    description: planDescription.value.trim(),
+    createdAt: isEditMode.value ? (await fetchExistingPlans()).plans.find(p => p.id === planId.value)?.createdAt || now : now,
+    updatedAt: now,
+    data: {
+      games: validGames,
+      configs: configs.map(config => ({
+        ...config,
+        data: {
+          '1K': {
+            avg: config.data['1K'].avg.slice(0, validGames.length),
+            low: config.data['1K'].low.slice(0, validGames.length)
+          },
+          '2K': {
+            avg: config.data['2K'].avg.slice(0, validGames.length),
+            low: config.data['2K'].low.slice(0, validGames.length)
+          }
         }
-      }
-    }))
+      }))
+    }
   }
 
   try {
-    localStorage.setItem('memoryData', JSON.stringify(data))
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    // 获取现有方案列表
+    const plansData = await fetchExistingPlans()
+    
+    // 如果是编辑模式，更新现有方案；否则添加新方案
+    const existingIndex = plansData.plans.findIndex(p => p.id === planId.value)
+    if (existingIndex >= 0) {
+      plansData.plans[existingIndex] = planData
+    } else {
+      plansData.plans.push(planData)
+    }
+    
+    // 保存到 localStorage
+    localStorage.setItem('plansData', JSON.stringify(plansData))
+    
+    // 下载 JSON 文件
+    const blob = new Blob([JSON.stringify(plansData, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'memoryData.json'
+    link.download = 'plansData.json'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
 
-    showMessage('数据保存成功！文件已下载', 'success')
-    store.memoryData = data
+    showMessage(isEditMode.value ? '方案更新成功！文件已下载' : '方案创建成功！文件已下载', 'success')
+    
+    // 延迟返回首页
+    setTimeout(() => {
+      router.push('/')
+    }, 1500)
   } catch (error) {
     showMessage('保存失败：' + (error as Error).message, 'error')
   }
 }
 
-// 加载现有数据
-function loadExistingData() {
-  if (store.memoryData) {
-    games.value = [...store.memoryData.games]
-    configs.length = 0
-    store.memoryData.configs.forEach(config => {
-      configs.push({
-        id: config.id,
-        name: config.name,
-        color: config.color,
-        data: {
-          '1K': { avg: [...config.data['1K'].avg], low: [...config.data['1K'].low] },
-          '2K': { avg: [...config.data['2K'].avg], low: [...config.data['2K'].low] }
-        }
-      })
-    })
-  } else {
-    games.value = ['PUBG', '三角洲', '无畏契约', 'CS2', '永劫无间']
-    addConfig()
-    addConfig()
-  }
+// 初始化数据
+function initData() {
+  games.value = ['PUBG', '三角洲', '无畏契约', 'CS2', '永劫无间']
+  addConfig()
+  addConfig()
 }
 
 function goBack() {
   router.push('/')
 }
 
-onMounted(() => loadExistingData())
+onMounted(() => {
+  if (isEditMode.value && editPlanId.value) {
+    loadPlanForEdit()
+  } else {
+    initData()
+  }
+})
 </script>
 
 <template>
   <div class="data-entry-page">
     <header class="page-header">
-      <h1>📝 数据录入</h1>
-      <button class="back-btn" @click="goBack">返回图表</button>
+      <h1>{{ isEditMode ? '✏️ 编辑方案' : '📝 新建方案' }}</h1>
+      <button class="back-btn" @click="goBack">返回列表</button>
     </header>
 
     <div v-if="message" class="message" :class="messageType">
       {{ message }}
     </div>
+
+    <!-- 方案基本信息 -->
+    <section class="plan-info-section">
+      <h2>📋 方案信息</h2>
+      <div class="plan-info-row">
+        <div class="form-group">
+          <label>方案名称 <span class="required">*</span></label>
+          <input v-model="planName" type="text" placeholder="例如：DDR5 内存超频对比" class="plan-input" />
+        </div>
+        <div class="form-group">
+          <label>方案描述</label>
+          <input v-model="planDescription" type="text" placeholder="简要描述这个对比方案" class="plan-input" />
+        </div>
+      </div>
+    </section>
 
     <!-- 游戏列表横向排列 -->
     <section class="games-section">
@@ -249,7 +349,9 @@ onMounted(() => loadExistingData())
     </section>
 
     <div class="actions">
-      <button class="save-btn" @click="saveData">💾 保存数据</button>
+      <button class="save-btn" @click="saveData">
+        💾 {{ isEditMode ? '更新方案' : '保存方案' }}
+      </button>
       <p class="hint">保存后会下载 JSON 文件，将其放入 public/mock/ 目录下替换原文件即可</p>
     </div>
   </div>
@@ -322,6 +424,44 @@ section h2 {
   margin: 0 0 15px 0;
   font-size: 16px;
   color: #60a5fa;
+}
+
+/* 方案信息 */
+.plan-info-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 250px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.required {
+  color: #f87171;
+}
+
+.plan-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.plan-input:focus {
+  outline: none;
+  border-color: #60a5fa;
 }
 
 /* 游戏列表横向排列 */
@@ -613,6 +753,15 @@ section h2 {
 
   section {
     padding: 12px;
+  }
+
+  .plan-info-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-group {
+    min-width: 100%;
   }
 
   .game-input {
